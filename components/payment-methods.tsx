@@ -21,7 +21,7 @@ export function PaymentMethods() {
     Zelle: { email: "rifalosfantasticos@gmail.com", name: "Pleyker Pena" },
     PayPal: { email: "bucarmarketing@gmail.com", link: "https://paypal.me/bucarmarketing", name: "Bucarmarketing" },
     Binance: { id: "613937704", email: "rifalosfantasticos@gmail.com", wallet: "0x8667128a08288e39a916712f899d43761bb260b7" },
-    "Pago Móvil": { link: "https://wa.me/17863728246" },
+    "Pago Móvil": { bank: "Banesco", account: "01340428334281055039", name:"Dilia Mendez Araujo ", ci: "12032808", phone: "04127451647", cost: "420 Bs" },
     Nequi: { phone: "3219412929" },
     "Cash App": { link: "https://cash.app/$MaikolArdila" },
     "Western Union": { name: "Elbis Pleyker Peña Mendez", country: "EEUU - Miami", ci: "22214146" },
@@ -159,25 +159,39 @@ export function PaymentMethods() {
               {/* Pago Móvil */}
               {selectedMethod === "Pago Móvil" && (
                 <div className="space-y-3 text-center">
-                  <div className="bg-gray-900 p-4 rounded-xl">
-                    <p className="text-gray-300 text-sm">🔗 Link de Pago</p>
-                    <a
-                      href={paymentData["Pago Móvil"].link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm sm:text-base font-bold text-blue-400 hover:underline break-words"
-                    >
-                      {paymentData["Pago Móvil"].link}
-                    </a>
-                    <button
-                      onClick={() => copyToClipboard(paymentData["Pago Móvil"].link)}
-                      className="mt-2 text-xs bg-blue-600 px-3 py-1 rounded-lg text-white hover:bg-blue-700"
-                    >
-                      Copiar
-                    </button>
-                  </div>
+                  {["bank", "account", "name", "ci", "phone", "cost"].map((field, i) => (
+                    <div key={i} className="bg-gray-900 p-4 rounded-xl">
+                      <p className="text-gray-300 text-sm">
+                        {field === "bank"
+                          ? "🏦 Banco"
+                          : field === "account"
+                          ? "💳 Cuenta"
+                          : field === "name"
+                          ? "👤 Titular"
+                          : field === "ci"
+                          ? "🆔 Cédula"
+                          : field === "phone"
+                          ? "📱 Teléfono"
+                          : "💵 Monto po Ticket"}
+                      </p>
+                      <p className="text-sm sm:text-base font-bold text-white break-words text-center">
+                        {paymentData["Pago Móvil"][field as keyof typeof paymentData["Pago Móvil"]]}
+                      </p>
+                      <button
+                        onClick={() =>
+                          copyToClipboard(
+                            paymentData["Pago Móvil"][field as keyof typeof paymentData["Pago Móvil"]] as string
+                          )
+                        }
+                        className="mt-2 text-xs bg-blue-600 px-3 py-1 rounded-lg text-white hover:bg-blue-700"
+                      >
+                        Copiar
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
+
 
 
               {/* Nequi */}
