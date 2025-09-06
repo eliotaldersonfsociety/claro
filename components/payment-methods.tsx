@@ -172,7 +172,7 @@ export function PaymentMethods() {
                           ? "🆔 Cédula"
                           : field === "phone"
                           ? "📱 Teléfono"
-                          : "💵 Monto po Ticket"}
+                          : "💵 Monto por Ticket"}
                       </p>
                       <p className="text-sm sm:text-base font-bold text-white break-words text-center">
                         {paymentData["Pago Móvil"][field as keyof typeof paymentData["Pago Móvil"]]}
