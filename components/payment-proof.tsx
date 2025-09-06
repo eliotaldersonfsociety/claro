@@ -1,4 +1,3 @@
-// src/components/PaymentProof.tsx
 "use client"
 
 import { useState, useEffect } from 'react'
@@ -6,7 +5,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { submitEntry } from '@/app/actions/submitEntry'
-import { uploadImage } from '@/app/actions/uploadToImageKit'
+import { uploadImage } from '@/app/actions/uploadToImageKit' // sigue usando tu server action actual
 
 type PersonalData = {
   fullName: string
@@ -42,20 +41,29 @@ export function PaymentProof({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0] || null
+
+    // ✅ Validación: máximo 1MB
+    if (selectedFile && selectedFile.size > 1 * 1024 * 1024) {
+      alert('❌ El archivo excede el tamaño máximo permitido (1MB)')
+      e.target.value = '' // reset input
+      return
+    }
+
+    // ✅ Validación: solo imágenes
+    if (selectedFile && !selectedFile.type.startsWith('image/')) {
+      alert('❌ Solo se permiten imágenes (JPG, PNG, WEBP, etc.)')
+      e.target.value = ''
+      return
+    }
+
     setFile(selectedFile)
 
     if (selectedFile) {
-      if (selectedFile.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = () => {
-          setPreviewUrl(reader.result as string)
-        }
-        reader.readAsDataURL(selectedFile)
-      } else if (selectedFile.type === 'application/pdf') {
-        setPreviewUrl('/pdf-icon.png')
-      } else {
-        setPreviewUrl(null)
+      const reader = new FileReader()
+      reader.onload = () => {
+        setPreviewUrl(reader.result as string)
       }
+      reader.readAsDataURL(selectedFile)
     } else {
       setPreviewUrl(null)
     }
@@ -64,7 +72,7 @@ export function PaymentProof({
   const handleSubmit = async () => {
     // ✅ VALIDACIÓN FRONTEND — DETIENE EL ENVÍO SI FALTA ALGO
     if (!file) {
-      alert('⚠️ Por favor, selecciona un archivo de comprobante de pago (imagen o PDF).')
+      alert('⚠️ Por favor, selecciona un archivo de comprobante de pago (imagen).')
       return
     }
 
@@ -94,25 +102,26 @@ export function PaymentProof({
     }
 
     if (!personalData.paymentReference?.trim()) {
-      alert('⚠️ El campo "Referencia de pago" es obligatorio.');
+      alert('⚠️ El campo "Referencia de pago" es obligatorio.')
       return
     }
 
     if (!personalData.accountHolder?.trim()) {
-      alert('⚠️ El campo "Titular de la cuenta" es obligatorio.');
+      alert('⚠️ El campo "Titular de la cuenta" es obligatorio.')
       return
     }
+
     setIsSubmitting(true)
 
     try {
-      // Subir archivo
+      // Subir archivo (tu server action actual, ahora con límite de 1MB seguro)
       const uploaded = await uploadImage(file)
       if (!uploaded.success || !uploaded.url) {
         alert(`❌ Error al subir el archivo: ${uploaded.error || "Intenta de nuevo"}`)
         return
       }
 
-      // Enviar a backend (submitEntry hará su propia validación)
+      // Enviar a backend
       const result = await submitEntry({
         ticketNumbers: selectedTickets,
         fullName: personalData.fullName.trim(),
@@ -155,22 +164,11 @@ export function PaymentProof({
         >
           {previewUrl && (
             <div className="mb-4 flex justify-center">
-              {file?.type === 'application/pdf' ? (
-                <div className="flex flex-col items-center">
-                  <img
-                    src="/pdf-icon.png"
-                    alt="PDF"
-                    className="w-16 h-16 mb-2"
-                  />
-                  <span className="text-xs text-gray-600">{file.name}</span>
-                </div>
-              ) : (
-                <img
-                  src={previewUrl}
-                  alt="Vista previa"
-                  className="max-h-48 max-w-full rounded-lg shadow-md border border-gray-200 object-contain"
-                />
-              )}
+              <img
+                src={previewUrl}
+                alt="Vista previa"
+                className="max-h-48 max-w-full rounded-lg shadow-md border border-gray-200 object-contain"
+              />
             </div>
           )}
 
@@ -181,14 +179,17 @@ export function PaymentProof({
             <>
               <p className="text-sm text-gray-600 mb-2">SELECCIONA UN ARCHIVO DE PAGO</p>
               <p className="text-xs text-gray-500 mb-2">Ejemplo: PAGOMÓVIL / ZELLE</p>
-              <p className="text-xs text-gray-400">Formatos aceptados: JPG, PNG</p>
-              <p className="text-xs text-gray-400">Tamaño máximo: 5MB</p>
+              <p className="text-xs text-gray-400">Formatos aceptados: JPG, PNG, WEBP</p>
+              <p className="text-xs text-gray-400">Tamaño máximo: 1MB</p>
+              <p className="text-xs text-orange-600 mt-1">
+                ¿Tu imagen es muy grande? <a href="https://tinypng.com" target="_blank" rel="noopener noreferrer" className="underline">¡Comprímela aquí!</a>
+              </p>
             </>
           )}
           <input
             id="file-upload"
             type="file"
-            accept="image/*,.pdf"
+            accept="image/*"
             className="hidden"
             onChange={handleFileChange}
           />
