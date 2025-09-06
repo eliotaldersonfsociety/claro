@@ -5,7 +5,8 @@ import { useEffect, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
 import { getEntries } from "../actions/getEntries"
-import { deleteEntry } from "../actions/deleteEntry"
+import { deleteEntry } from "@/app/actions/deleteEntry"
+import { logoutAction } from "@/app/actions/logout"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -68,9 +69,8 @@ export default function DashboardPage() {
   // Detectar si estamos buscando un número de boleto específico
   const searchedTicket = useMemo(() => {
     const term = searchTerm.trim()
-    // Si es un número de 1 a 4 dígitos, lo consideramos un boleto
     if (/^\d{1,4}$/.test(term)) {
-      return term.padStart(4, '0') // Normalizar a 4 dígitos como en tu sistema
+      return term.padStart(4, '0')
     }
     return null
   }, [searchTerm])
@@ -93,7 +93,7 @@ export default function DashboardPage() {
 
         return matchesText || matchesTicket
       })
-      .sort((a, b) => b.ticketCount - a.ticketCount) // Ordenar por más boletos primero
+      .sort((a, b) => b.ticketCount - a.ticketCount)
 
     setFilteredEntries(filtered)
   }, [searchTerm, entries])
@@ -118,10 +118,10 @@ export default function DashboardPage() {
     setIsModalOpen(true)
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     if (confirm("¿Seguro que deseas cerrar sesión?")) {
-      logout()
-      router.push("/login")
+      logout() // limpia el contexto en memoria
+      await logoutAction() // borra cookie + redirige a /login
     }
   }
 
@@ -286,7 +286,6 @@ export default function DashboardPage() {
                       <Badge variant="secondary" className="bg-blue-100 text-blue-800 ml-2">
                         {entry.ticketCount} boletos
                       </Badge>
-                      {/* 👉 INDICADOR: si este cliente compró el boleto buscado */}
                       {searchedTicket && entry.tickets.includes(searchedTicket) && (
                         <Badge variant="destructive" className="bg-yellow-500 text-white ml-2 animate-pulse">
                           🔍 ¡Tiene el boleto {searchedTicket}!
@@ -473,20 +472,15 @@ export default function DashboardPage() {
                     Comprobante
                   </h3>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <FileText className="h-6 w-6 text-blue-600" />
-                    <div>
-                      <p className="font-medium text-gray-900 text-sm sm:text-base">
-                        {selectedEntry.fileName}
-                      </p>
-                      <a
-                        href={selectedEntry.filePath}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800"
-                      >
-                        Abrir archivo →
-                      </a>
-                    </div>
+                    <FileText className="h-5 w-5 text-gray-500" />
+                    <a
+                      href={selectedEntry.fileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:underline break-all text-sm sm:text-base"
+                    >
+                      {selectedEntry.fileUrl}
+                    </a>
                   </div>
                 </div>
               </div>
