@@ -1,16 +1,15 @@
-// app/login/page.tsx
 "use client";
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { loginAction } from "@/app/actions/auth"; // ✅ Ruta corregida
+import { loginAction } from "@/app/actions/auth";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { User, Lock } from "lucide-react";
+import { User, Lock, ArrowLeft } from "lucide-react";
 import Image from "next/image";
 
 export default function LoginPage() {
@@ -33,10 +32,7 @@ export default function LoginPage() {
       if (result && "error" in result && result.error) {
         setError(result.error);
       } else if (result && "success" in result && result.success) {
-        // ✅ Redirigimos desde el cliente
         router.push("/dashboard");
-        // Opcional: refrescar para cargar datos del servidor si es necesario
-        // router.refresh();
       }
     });
   };
@@ -60,6 +56,17 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Botón para regresar al inicio */}
+          <Button
+            type="button"
+            variant="outline"
+            className="mb-4 w-full text-gray-800 bg-gray-200 hover:bg-gray-300 flex items-center justify-center gap-2"
+            onClick={() => router.push("/")}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Volver al Inicio
+          </Button>
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-yellow-600">
