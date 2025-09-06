@@ -28,11 +28,10 @@ export function PaymentProof({
   onSuccess?: () => void
 }) {
   const [file, setFile] = useState<File | null>(null)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null) // 👈 Para la miniatura
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [comment, setComment] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Limpiar URL de preview cuando cambia el archivo
   useEffect(() => {
     return () => {
       if (previewUrl) {
@@ -53,7 +52,7 @@ export function PaymentProof({
         }
         reader.readAsDataURL(selectedFile)
       } else if (selectedFile.type === 'application/pdf') {
-        setPreviewUrl('/pdf-icon.png') // 👈 Puedes poner un ícono de PDF
+        setPreviewUrl('/pdf-icon.png')
       } else {
         setPreviewUrl(null)
       }
@@ -63,46 +62,84 @@ export function PaymentProof({
   }
 
   const handleSubmit = async () => {
-    if (!file) return alert('⚠️ Debes seleccionar un archivo de comprobante')
-    if (selectedTickets.length === 0) return alert('⚠️ Debes seleccionar al menos un boleto')
-    if (!personalData.fullName || !personalData.idNumber)
-      return alert('⚠️ Completa todos los campos del formulario de datos personales')
+    // ✅ VALIDACIÓN FRONTEND — DETIENE EL ENVÍO SI FALTA ALGO
+    if (!file) {
+      alert('⚠️ Por favor, selecciona un archivo de comprobante de pago (imagen o PDF).')
+      return
+    }
 
+    if (selectedTickets.length === 0) {
+      alert('⚠️ Debes seleccionar al menos un boleto.')
+      return
+    }
+
+    if (!personalData.fullName?.trim()) {
+      alert('⚠️ El campo "Nombres y Apellidos" es obligatorio.')
+      return
+    }
+
+    if (!personalData.idNumber?.trim()) {
+      alert('⚠️ El campo "Cédula" es obligatorio.')
+      return
+    }
+
+    if (!personalData.phone?.trim()) {
+      alert('⚠️ El campo "Teléfono" es obligatorio.')
+      return
+    }
+
+    if (!personalData.countryCode?.trim()) {
+      alert('⚠️ El campo "País" es obligatorio.')
+      return
+    }
+
+    if (!personalData.paymentReference?.trim()) {
+      alert('⚠️ El campo "Referencia de pago" es obligatorio.');
+      return
+    }
+
+    if (!personalData.accountHolder?.trim()) {
+      alert('⚠️ El campo "Titular de la cuenta" es obligatorio.');
+      return
+    }
     setIsSubmitting(true)
 
     try {
+      // Subir archivo
       const uploaded = await uploadImage(file)
       if (!uploaded.success || !uploaded.url) {
-        return alert(`❌ Error subiendo archivo: ${uploaded.error || "URL no generada"}`)
+        alert(`❌ Error al subir el archivo: ${uploaded.error || "Intenta de nuevo"}`)
+        return
       }
 
+      // Enviar a backend (submitEntry hará su propia validación)
       const result = await submitEntry({
         ticketNumbers: selectedTickets,
-        fullName: personalData.fullName,
-        idNumber: personalData.idNumber,
-        phone: personalData.phone,
+        fullName: personalData.fullName.trim(),
+        idNumber: personalData.idNumber.trim(),
+        phone: personalData.phone.trim(),
         countryCode: personalData.countryCode,
         countryName: personalData.countryName,
-        paymentReference: personalData.paymentReference,
-        accountHolder: personalData.accountHolder,
+        paymentReference: personalData.paymentReference?.trim() || '',
+        accountHolder: personalData.accountHolder?.trim() || '',
         fileUrl: uploaded.url,
         fileName: file.name,
         mimeType: file.type,
-        comment,
+        comment: comment.trim(),
       })
 
       if (result.success) {
-        alert('✅ Compra registrada exitosamente')
+        alert('✅ ¡Compra registrada exitosamente!')
         setFile(null)
-        setPreviewUrl(null) // 👈 Limpiar preview
+        setPreviewUrl(null)
         setComment('')
         if (onSuccess) onSuccess()
       } else {
-        alert(`❌ Error: ${result.message}`)
+        alert(`❌ ${result.message || "Error al registrar la compra"}`)
       }
     } catch (error: any) {
-      console.error(error)
-      alert(`❌ ${error.message}`)
+      console.error('Error inesperado:', error)
+      alert(`❌ Error inesperado: ${error.message || "Intenta más tarde"}`)
     } finally {
       setIsSubmitting(false)
     }
@@ -144,7 +181,8 @@ export function PaymentProof({
             <>
               <p className="text-sm text-gray-600 mb-2">SELECCIONA UN ARCHIVO DE PAGO</p>
               <p className="text-xs text-gray-500 mb-2">Ejemplo: PAGOMÓVIL / ZELLE</p>
-              <p className="text-xs text-gray-400">Formatos aceptados: JPG, PNG, PDF</p>
+              <p className="text-xs text-gray-400">Formatos aceptados: JPG, PNG</p>
+              <p className="text-xs text-gray-400">Tamaño máximo: 5MB</p>
             </>
           )}
           <input
@@ -152,7 +190,7 @@ export function PaymentProof({
             type="file"
             accept="image/*,.pdf"
             className="hidden"
-            onChange={handleFileChange} // 👈 Usamos la nueva función
+            onChange={handleFileChange}
           />
         </label>
 
