@@ -51,7 +51,7 @@ export default function LoginPage() {
               alt="Dashboard"
               width={200}
               height={60}
-              className="mb-6 border-4 border-white rounded-lg"
+              className="mb-6"
             />
           </div>
           <CardTitle className="text-2xl font-bold text-yellow-600">Iniciar Sesión</CardTitle>
@@ -62,7 +62,7 @@ export default function LoginPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-gray-700">
+              <Label htmlFor="username" className="text-yellow-600">
                 Usuario
               </Label>
               <div className="relative">
@@ -81,11 +81,11 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-yellow-7-600">
+              <Label htmlFor="password" className="text-yellow-600">
                 Contraseña
               </Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-yellow-600" />
                 <Input
                   id="password"
                   type="password"
