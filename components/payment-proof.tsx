@@ -161,7 +161,7 @@ export function PaymentProof({
           placeholder="Comentario opcional..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          className="bg-stone-950 text-white"
+          className="bg-yellow-100 text-stone-950"
         />
 
         {/* Botón enviar */}
