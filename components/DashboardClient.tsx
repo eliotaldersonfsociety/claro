@@ -131,13 +131,13 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
               height={50}
               className="mx-auto sm:mx-0 mb-2"
             />
-            <p className="text-gray-600 text-sm">
+            <p className="text-white text-sm">
               Gestiona y visualiza todas las entradas registradas
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <User className="h-4 w-4" />
+            <div className="flex items-center gap-2 text-sm text-yellow-600">
+              <User className="h-4 w-4 text-yellow-600" />
               <span>{user.username}</span>
             </div>
             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -150,14 +150,14 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
               onClick={handleLogout}
               className="flex items-center gap-2 bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-4 w-4 text-yellow-600" />
               <span className="hidden sm:inline">Cerrar Sesión</span>
             </Button>
           </div>
         </div>
 
         {/* Search */}
-        <Card className="bg-white border-gray-200">
+        <Card className="bg-stone-950 border-yellow-200">
           <CardContent className="p-3 sm:p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
