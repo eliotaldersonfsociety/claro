@@ -192,9 +192,9 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
 
         {/* Top Buyers */}
         {topBuyers.length > 0 && (
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <Card className="bg-gradient-to-r from-orange-50 to-yellow-50 border-yellow-200">
             <CardContent className="p-4">
-              <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-yellow-900 mb-3 flex items-center gap-2">
                 🏆 Top 5 Compradores
               </h3>
               <div className="space-y-2">
