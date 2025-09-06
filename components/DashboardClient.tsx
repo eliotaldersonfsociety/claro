@@ -34,7 +34,7 @@ interface Entry {
   tickets: (string | number)[];
   paymentReference: string;
   accountHolder: string;
-  fileUrl: string;
+  filePath: string;
 }
 
 interface DashboardClientProps {
@@ -421,12 +421,12 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                     <FileText className="h-5 w-5 text-gray-500" />
                     <a
-                      href={selectedEntry.fileUrl}
+                      href={selectedEntry.filePath}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 hover:underline break-all text-sm sm:text-base"
                     >
-                      {selectedEntry.fileUrl}
+                      {selectedEntry.filePath}
                     </a>
                   </div>
                 </div>
