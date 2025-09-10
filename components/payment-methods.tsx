@@ -1,9 +1,16 @@
-"use client"
+// src/components/PaymentMethods.tsx
+'use client'
 
 import { useState } from "react"
 import { Card } from "@/components/ui/card"
 
-export function PaymentMethods() {
+export function PaymentMethods({
+  selectedTickets,
+  total,
+}: {
+  selectedTickets: number[]
+  total: number
+}) {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
 
   const paymentMethods = [
@@ -33,9 +40,11 @@ export function PaymentMethods() {
     alert("✅ Copiado: " + text)
   }
 
+  const formatTicketNumber = (num: number) => num.toString().padStart(4, '0')
+
   return (
     <div className="mb-8 p-[1px] rounded-xl bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)]">
-      <Card className="border-0 p-4 md:p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-black shadow-2xl border border-gray-700">
+      <Card className="border-0 p-4 md:p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-black shadow-2xl">
         {/* Título */}
         <div className="text-center mb-6 md:mb-8">
           <div className="p-[1px] rounded-full bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)] inline-block mb-4 shadow-lg">
@@ -49,6 +58,32 @@ export function PaymentMethods() {
             </div>
           </div>
         </div>
+
+        {/* Resumen de compra — NUEVO BLOQUE */}
+        {selectedTickets.length > 0 && (
+          <div className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 text-black py-4 px-6 rounded-2xl mb-6 shadow-xl">
+            <h4 className="text-lg font-black text-center mb-2">🎟️ TU COMPRA</h4>
+            <p className="text-center font-bold text-lg">Total: ${total.toFixed(2)} USD</p>
+            <p className="text-center font-bold text-lg text-yellow-900">
+              🇻🇪 {new Intl.NumberFormat('es-VE').format(total * 210)} Bs
+            </p>
+            <div className="mt-2 text-center">
+              <p className="text-sm font-medium">Boletos seleccionados ({selectedTickets.length}):</p>
+              <div className="flex flex-wrap justify-center gap-1 mt-1">
+                {selectedTickets
+                  .sort((a, b) => a - b)
+                  .map((ticket) => (
+                    <span
+                      key={ticket}
+                      className="bg-black bg-opacity-20 text-white px-2 py-1 rounded text-xs font-mono font-bold"
+                    >
+                      {formatTicketNumber(ticket)}
+                    </span>
+                  ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Botones de métodos */}
         <div className="grid grid-cols-4 md:grid-cols-8 gap-4 mb-8">
@@ -172,7 +207,7 @@ export function PaymentMethods() {
                           ? "🆔 Cédula"
                           : field === "phone"
                           ? "📱 Teléfono"
-                          : "💵 Monto por Ticket"}
+                          : "💵 Monto po Ticket"}
                       </p>
                       <p className="text-sm sm:text-base font-bold text-white break-words text-center">
                         {paymentData["Pago Móvil"][field as keyof typeof paymentData["Pago Móvil"]]}
@@ -191,8 +226,6 @@ export function PaymentMethods() {
                   ))}
                 </div>
               )}
-
-
 
               {/* Nequi */}
               {selectedMethod === "Nequi" && (
@@ -266,7 +299,7 @@ export function PaymentMethods() {
               {/* Western Union */}
               {selectedMethod === "Western Union" && (
                 <div className="space-y-3 text-center">
-                  {[ "ci", "name"].map((field, i) => (
+                  {["ci", "name"].map((field, i) => (
                     <div key={i} className="bg-gray-900 p-4 rounded-xl">
                       <p className="text-gray-300 text-sm">
                         {field === "phone" ? "📱 Teléfono" : field === "ci" ? "🆔 Cédula" : field === "bank" ? "🏦 Banco" : "👤 Nombre"}
@@ -286,7 +319,6 @@ export function PaymentMethods() {
                   ))}
                 </div>
               )}
-
             </div>
           </div>
         )}
