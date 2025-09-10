@@ -193,10 +193,17 @@ export function TicketGrid({
           </div>
           {/* Total */}
           <div className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 text-black py-3 px-4 sm:py-4 sm:px-8 rounded-2xl inline-block mb-4 shadow-xl max-w-full">
-            <p suppressHydrationWarning className="text-lg sm:text-2xl font-black">
-              💰 Total: ${isClient ? calculateTotal(selectedTickets).toFixed(2) : '0.00'} USD
-            </p>
-            <p className="text-sm sm:text-lg font-bold">{selectedTickets.length} BOLETOS ESCOGIDOS</p>
+            {isClient && (
+              <>
+                <p suppressHydrationWarning className="text-lg sm:text-2xl font-black">
+                  💰 Total: ${calculateTotal(selectedTickets).toFixed(2)} USD
+                </p>
+                <p className="text-sm sm:text-lg font-bold text-yellow-900">
+                  🇻🇪 {new Intl.NumberFormat('es-VE').format(calculateTotal(selectedTickets) * 210)} Bs
+                </p>
+                <p className="text-sm sm:text-lg font-bold mt-1">{selectedTickets.length} BOLETOS ESCOGIDOS</p>
+              </>
+            )}
           </div>
           {/* Lista de boletos seleccionados */}
           {selectedTickets.length > 0 && (
