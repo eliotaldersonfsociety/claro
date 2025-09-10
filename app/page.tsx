@@ -27,11 +27,21 @@ export default function Home() {
     accountHolder: '',
   })
 
+  // 👉 Función para calcular el total (igual que en TicketGrid)
+  const calculateTotal = (tickets: number[]) => {
+    const ticketPrice = 2
+    const groupsOfTen = Math.floor(tickets.length / 10)
+    const remaining = tickets.length % 10
+    return groupsOfTen * 15 + remaining * ticketPrice
+  }
+
+  const total = calculateTotal(selectedTickets)
+
   // Esta función se pasa a PaymentProof y se ejecuta tras envío exitoso
   const handlePurchaseSuccess = () => {
     // ✅ Resetear tickets seleccionados
     setSelectedTickets([])
-    // ✅ Resetear datos personales (opcional, depende de si quieres mantenerlos)
+    // ✅ Resetear datos personales
     setPersonalData({
       fullName: '',
       idNumber: '',
@@ -41,7 +51,7 @@ export default function Home() {
       paymentReference: '',
       accountHolder: '',
     })
-    // Opcional: mostrar mensaje, scroll arriba, etc.
+    // Scroll suave al inicio
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -51,29 +61,47 @@ export default function Home() {
       <main className="container mx-auto px-4 py-8 max-w-6xl">
         <RaffleInfo />
 
-        <div id="tickets-section">
+        <div id="tickets-section" className="mb-12">
           <TicketGrid
             selectedTickets={selectedTickets}
             onSelectedTicketsChange={setSelectedTickets}
           />
         </div>
 
-        <PersonalDataForm
-          value={personalData}
-          onChange={setPersonalData}
-        />
+        <div id="personal-data-section" className="mb-12">
+          <PersonalDataForm
+            value={personalData}
+            onChange={setPersonalData}
+          />
+        </div>
 
-        <PaymentMethods />
+        <div id="payment-methods-section" className="mb-12">
+          <PaymentMethods
+            selectedTickets={selectedTickets}
+            total={total}
+          />
+        </div>
 
-        <PaymentProof
-          selectedTickets={selectedTickets}
-          personalData={personalData}
-          onSuccess={handlePurchaseSuccess}
-        />
+        <div id="payment-proof-section" className="mb-12">
+          <PaymentProof
+            selectedTickets={selectedTickets}
+            personalData={personalData}
+            onSuccess={handlePurchaseSuccess}
+          />
+        </div>
 
-        <TicketVerifier />
-        <ImageGallery />
-        <FAQ />
+        <div id="ticket-verifier-section" className="mb-12">
+          <TicketVerifier />
+        </div>
+
+        <div id="gallery-section" className="mb-12">
+          <ImageGallery />
+        </div>
+
+        <div id="faq-section" className="mb-12">
+          <FAQ />
+        </div>
+
         <Footer />
       </main>
     </div>
