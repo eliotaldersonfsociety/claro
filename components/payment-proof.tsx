@@ -1,3 +1,5 @@
+// PaymentProof.tsx — versión con Driver.js
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -5,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { submitEntry } from "@/app/actions/submitEntry"
-import { uploadImage } from "@/app/actions/uploadToImageKit" // sigue usando tu server action actual
+import { uploadImage } from "@/app/actions/uploadToImageKit"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,6 +19,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { driver } from "driver.js";
+import 'driver.js/dist/driver.css'
 
 type PersonalData = {
   fullName: string
@@ -41,8 +45,10 @@ export function PaymentProof({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [comment, setComment] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
+    setIsClient(true)
     return () => {
       if (previewUrl) {
         URL.revokeObjectURL(previewUrl)
@@ -165,11 +171,117 @@ export function PaymentProof({
     }
   }
 
+  // 🎯 DRIVER.JS TOUR
+  const startTour = () => {
+    if (typeof window === 'undefined') return
+
+    const tour = driver({
+      showProgress: true,
+      allowKeyboardControl: true,
+      allowClose: true,
+      steps: [
+        {
+          element: '#payment-proof-title',
+          popover: {
+            title: 'Bienvenido al comprobante de pago',
+            description: 'Aquí debes subir la captura o imagen que prueba que realizaste el pago por tus boletos.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#file-upload-area',
+          popover: {
+            title: 'Selecciona tu comprobante',
+            description: 'Haz clic aquí para elegir una imagen desde tu dispositivo. Solo se aceptan JPG, PNG o WEBP, hasta 1MB.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#compression-tip',
+          popover: {
+            title: '¿Tu imagen es muy grande?',
+            description: 'Si tu captura pesa más de 1MB, usa este enlace para comprimirla fácilmente sin perder calidad.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#optional-comment',
+          popover: {
+            title: 'Comentario opcional',
+            description: 'Puedes dejar un mensaje adicional aquí, por ejemplo: “Pago por Zelle” o “Referencia: 1234”.',
+            side: 'left',
+            align: 'start',
+          },
+        },
+        {
+          element: '#submit-button',
+          popover: {
+            title: 'Enviar comprobante',
+            description: 'Al hacer clic aquí, se verificará todo y se enviará tu compra. ¡Asegúrate de que todo esté correcto!',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#help-button-proof',
+          popover: {
+            title: '¿Necesitas ayuda?',
+            description: 'Puedes reiniciar este tutorial en cualquier momento haciendo clic aquí.',
+            side: 'left',
+            align: 'start',
+          },
+        },
+      ],
+    })
+
+    tour.drive()
+  }
+
+  // Opcional: auto-iniciar tour en primer uso
+  // useEffect(() => {
+  //   if (!isClient) return
+  //   const seen = localStorage.getItem('seenPaymentProofTour')
+  //   if (!seen) {
+  //     setTimeout(startTour, 1000)
+  //     localStorage.setItem('seenPaymentProofTour', 'true')
+  //   }
+  // }, [isClient])
+
   return (
     <div className="mb-8 p-[1px] rounded-xl bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)]">
       <Card className="p-6 border-0 space-y-4">
+        {/* Título con botón de ayuda */}
+        <div className="text-center mb-6">
+          <div className="p-[1px] rounded-full bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)] inline-block mb-4 shadow-lg">
+            <div className="bg-stone-950 w-fit text-s text-white py-3 px-6 rounded-full flex items-center space-x-2">
+              <h2
+                id="payment-proof-title"
+                className="text-lg sm:text-2xl font-black flex items-center justify-center space-x-2"
+              >
+                📄 Comprobante de Pago
+              </h2>
+              <button
+                id="help-button-proof"
+                onClick={startTour}
+                className="ml-4 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm py-1 px-3 rounded-full flex items-center gap-1 transition-all duration-300 shadow-md"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-help-circle">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                  <line x1="12" y1="17" x2="12" y2="17"></line>
+                </svg>
+                ¿Cómo enviar?
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Subida de archivo + Vista previa */}
         <label
+          id="file-upload-area"
           htmlFor="file-upload"
           className="cursor-pointer border-2 border-dashed border-gray-300 rounded-lg p-6 text-center block hover:border-yellow-500 transition relative"
         >
@@ -192,7 +304,7 @@ export function PaymentProof({
               <p className="text-xs text-gray-500 mb-2">Ejemplo: PAGOMÓVIL / ZELLE</p>
               <p className="text-xs text-gray-400">Formatos aceptados: JPG, PNG, WEBP</p>
               <p className="text-xs text-gray-400">Tamaño máximo: 1MB</p>
-              <p className="text-xs text-orange-600 mt-1">
+              <p id="compression-tip" className="text-xs text-orange-600 mt-1">
                 ¿Tu imagen es muy grande?{" "}
                 <a
                   href="https://tinypng.com"
@@ -216,6 +328,7 @@ export function PaymentProof({
 
         {/* Comentario opcional */}
         <Textarea
+          id="optional-comment"
           placeholder="Comentario opcional..."
           value={comment}
           onChange={(e) => setComment(e.target.value)}
@@ -226,6 +339,7 @@ export function PaymentProof({
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button
+              id="submit-button"
               disabled={isSubmitting}
               className="w-full bg-gradient-to-r from-orange-500 to-yellow-500 text-black font-bold py-3 rounded-xl"
             >
