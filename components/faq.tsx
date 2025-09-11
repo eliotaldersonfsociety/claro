@@ -56,7 +56,7 @@ export function FAQ() {
 
   return (
     <div className="mb-8 p-[1px] rounded-xl bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)]">
-    <Card className="p-4 md:p-8 border-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black shadow-2xl border border-gray-700">
+    <Card className="p-4 md:p-8 border-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black shadow-2xl">
       <div className="text-center">
               <div className="p-[1px] rounded-full bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)] inline-block mb-4 shadow-lg">
                 <div className="bg-stone-950 w-fit text-s text-white py-3 px-6 rounded-full flex items-center space-x-2">
