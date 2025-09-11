@@ -42,24 +42,68 @@ interface DashboardClientProps {
   user: { userId: number; username: string };
 }
 
+// 🔑 Función para agrupar entradas por idNumber
+const groupEntriesByIdNumber = (entries: Entry[]): Entry[] => {
+  const grouped = new Map<string, Entry>();
+
+  entries.forEach((entry) => {
+    const key = entry.idNumber;
+    if (grouped.has(key)) {
+      const existing = grouped.get(key)!;
+      existing.tickets = [...existing.tickets, ...entry.tickets];
+      existing.ticketCount += entry.ticketCount;
+      // Opcional: puedes actualizar otros campos si es necesario (ej: fecha más reciente, etc)
+    } else {
+      // Clonamos para evitar mutar el original
+      grouped.set(key, { ...entry });
+    }
+  });
+
+  return Array.from(grouped.values());
+};
+
 export default function DashboardClient({ entries: initialEntries, user }: DashboardClientProps) {
-  const [entries, setEntries] = useState<Entry[]>(initialEntries);
-  const [filteredEntries, setFilteredEntries] = useState<Entry[]>(initialEntries);
+  const [rawEntries, setRawEntries] = useState<Entry[]>(initialEntries);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedEntry, setSelectedEntry] = useState<Entry | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const router = useRouter();
 
-  // Calcular Top 5 compradores (solo si no hay búsqueda activa)
+  // 🧩 Agrupamos las entradas por idNumber
+  const groupedEntries = useMemo(() => {
+    return groupEntriesByIdNumber(rawEntries);
+  }, [rawEntries]);
+
+  // 🔍 Filtramos sobre las agrupadas
+  const filteredEntries = useMemo(() => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return groupedEntries;
+
+    return groupedEntries.filter((entry) => {
+      const matchesText =
+        entry.fullName.toLowerCase().includes(term) ||
+        entry.idNumber.toLowerCase().includes(term) ||
+        entry.phone.toLowerCase().includes(term) ||
+        entry.countryName.toLowerCase().includes(term);
+
+      const matchesTicket = entry.tickets.some((ticket) =>
+        ticket.toString().includes(term)
+      );
+
+      return matchesText || matchesTicket;
+    });
+  }, [groupedEntries, searchTerm]);
+
+  // 🏆 Top 5 compradores (solo si no hay búsqueda activa)
   const topBuyers = useMemo(() => {
     if (searchTerm.trim() !== "") return [];
-    return [...entries]
+    return [...groupedEntries]
       .sort((a, b) => b.ticketCount - a.ticketCount)
       .slice(0, 5);
-  }, [entries, searchTerm]);
+  }, [groupedEntries, searchTerm]);
 
-  // Detectar si estamos buscando un número de boleto específico
+  // 🔎 Detectar si se está buscando un número de boleto específico
   const searchedTicket = useMemo(() => {
     const term = searchTerm.trim();
     if (/^\d{1,4}$/.test(term)) {
@@ -68,34 +112,17 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
     return null;
   }, [searchTerm]);
 
-  // Filtro por texto o número de boleto
-  useEffect(() => {
-    const term = searchTerm.toLowerCase().trim();
-
-    const filtered = entries
-      .filter((entry) => {
-        const matchesText =
-          entry.fullName.toLowerCase().includes(term) ||
-          entry.idNumber.toLowerCase().includes(term) ||
-          entry.phone.toLowerCase().includes(term) ||
-          entry.countryName.toLowerCase().includes(term);
-
-        const matchesTicket = entry.tickets.some((ticket) =>
-          ticket.toString().includes(term)
-        );
-
-        return matchesText || matchesTicket;
-      })
-      .sort((a, b) => b.ticketCount - a.ticketCount);
-
-    setFilteredEntries(filtered);
-  }, [searchTerm, entries]);
-
+  // 🗑️ Manejar eliminación (elimina todas las entradas del mismo idNumber)
   const handleDelete = async (id: number) => {
     if (confirm("¿Seguro que deseas eliminar esta entrada?")) {
       const res = await deleteEntry(id);
       if (res.success) {
-        setEntries(entries.filter((e) => e.id !== id));
+        // Buscamos el idNumber del registro eliminado
+        const deletedEntry = rawEntries.find(e => e.id === id);
+        if (deletedEntry) {
+          // Eliminamos todas las entradas con ese idNumber
+          setRawEntries(prev => prev.filter(e => e.idNumber !== deletedEntry.idNumber));
+        }
         if (selectedEntry?.id === id) {
           setIsModalOpen(false);
           setSelectedEntry(null);
@@ -106,20 +133,22 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
     }
   };
 
+  // 👁️ Ver entrada (modal)
   const handleViewEntry = (entry: Entry) => {
     setSelectedEntry(entry);
     setIsModalOpen(true);
   };
 
+  // 🚪 Cerrar sesión
   const handleLogout = async () => {
     if (confirm("¿Seguro que deseas cerrar sesión?")) {
-      await logoutAction(); // elimina cookie
-      router.push("/login"); // redirige
+      await logoutAction();
+      router.push("/login");
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 bg-gradient-to-br from-gray-900 via-black to-gray-800 p-4 sm:p-6">
+    <div className="min-h-screen bg-white p-4 sm:p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -131,13 +160,13 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
               height={50}
               className="mx-auto sm:mx-0 mb-2"
             />
-            <p className="text-white text-sm">
+            <p className="text-gray-600 text-sm">
               Gestiona y visualiza todas las entradas registradas
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-yellow-600">
-              <User className="h-4 w-4 text-yellow-600" />
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <User className="h-4 w-4" />
               <span>{user.username}</span>
             </div>
             <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -150,14 +179,14 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
               onClick={handleLogout}
               className="flex items-center gap-2 bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
             >
-              <LogOut className="h-4 w-4 text-yellow-600" />
+              <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Cerrar Sesión</span>
             </Button>
           </div>
         </div>
 
         {/* Search */}
-        <Card className="bg-stone-950 border-yellow-200">
+        <Card className="bg-white border-gray-200">
           <CardContent className="p-3 sm:p-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -192,15 +221,15 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
 
         {/* Top Buyers */}
         {topBuyers.length > 0 && (
-          <Card className="bg-gradient-to-r from-orange-50 to-yellow-50 border-yellow-200">
+          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
             <CardContent className="p-4">
-              <h3 className="text-lg font-bold text-yellow-900 mb-3 flex items-center gap-2">
+              <h3 className="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2">
                 🏆 Top 5 Compradores
               </h3>
               <div className="space-y-2">
                 {topBuyers.map((entry, index) => (
                   <div
-                    key={entry.id}
+                    key={entry.idNumber} // ⚠️ Cambiado a idNumber para evitar duplicados en claves
                     className="flex items-center justify-between p-2 bg-white rounded-lg border border-blue-100 hover:shadow-sm transition"
                   >
                     <div className="flex items-center gap-3">
@@ -230,7 +259,7 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
         <div className="space-y-3">
           {filteredEntries.map((entry) => (
             <Card
-              key={entry.id}
+              key={entry.idNumber} // ⚠️ Usamos idNumber como key para evitar duplicados
               className={`
                 hover:shadow-md transition-shadow duration-200 bg-white border-gray-200
                 ${searchedTicket && entry.tickets.includes(searchedTicket)
@@ -288,7 +317,7 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDelete(entry.id)}
+                      onClick={() => handleDelete(entry.id)} // ⚠️ Sigue usando entry.id para eliminar UN registro, pero luego borra todos del mismo idNumber
                       className="h-8 w-8 p-0"
                     >
                       <Trash2 className="h-4 w-4" />
