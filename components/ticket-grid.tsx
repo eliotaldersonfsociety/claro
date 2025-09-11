@@ -9,6 +9,8 @@ import { X, Minus, Plus, Sparkles, Ticket } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getSoldTickets } from '@/server/helpers/getSoldTickets'
+import { driver } from "driver.js";
+import 'driver.js/dist/driver.css'
 
 export function TicketGrid({
   selectedTickets,
@@ -29,7 +31,7 @@ export function TicketGrid({
       setLoading(true)
       try {
         const tickets = await getSoldTickets()
-        console.log("Tickets vendidos cargados:", tickets)
+        console.log('Tickets vendidos cargados:', tickets)
         setSoldTickets(tickets)
       } catch (error) {
         console.error('Error al cargar boletos vendidos:', error)
@@ -47,9 +49,7 @@ export function TicketGrid({
   const availableTickets = isClient ? allTickets.filter((t) => !soldTickets.includes(t)) : []
   const startIndex = (currentPage - 1) * ticketsPerPage
   const endIndex = startIndex + ticketsPerPage
-  const currentPageTickets = isClient
-    ? allTickets.slice(startIndex, endIndex)
-    : []
+  const currentPageTickets = isClient ? allTickets.slice(startIndex, endIndex) : []
 
   const soldPercentage = isClient ? Number(((soldTickets.length / totalTickets) * 100).toFixed(2)) : 0
   const [showNotification, setShowNotification] = useState<string | null>(null)
@@ -137,6 +137,117 @@ export function TicketGrid({
     }, 1500)
   }
 
+  // --- Driver.js Tour (v1.x compatible) ---
+  const startTour = () => {
+    if (typeof window === 'undefined') return // Solo en cliente
+
+    const tour = driver({
+      showProgress: true,
+      allowKeyboardControl: true,
+      allowClose: true,
+      steps: [
+        {
+          element: '#ticket-grid-title',
+          popover: {
+            title: '¡Bienvenido al selector de boletos!',
+            description: 'Aquí puedes seleccionar manualmente o aleatoriamente tus boletos para participar en el sorteo.',
+            side: 'bottom',
+            align: 'start',
+          },
+        },
+        {
+          element: '#progress-bar',
+          popover: {
+            title: 'Barra de progreso de ventas',
+            description: 'Muestra el porcentaje de boletos ya vendidos. ¡Date prisa antes de que se agoten!',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#legend',
+          popover: {
+            title: 'Leyenda de colores',
+            description: 'Verde/amarillo: disponible. Naranja: seleccionado. Gris: vendido.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#total-display',
+          popover: {
+            title: 'Total a pagar',
+            description: 'El costo se calcula automáticamente. ¡Por cada 10 boletos pagas solo $15 en lugar de $20!',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#selected-tickets-list',
+          popover: {
+            title: 'Tus boletos seleccionados',
+            description:
+              'Aquí ves los números que has elegido. Puedes hacer clic en cualquier boleto de la cuadrícula para agregarlo o quitarlo.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#lucky-pick-section',
+          popover: {
+            title: '¡Escoge a la suerte!',
+            description:
+              'Selecciona cuántos boletos quieres y haz clic en este botón para que el sistema elija números aleatorios por ti.',
+            side: 'bottom',
+            align: 'center',
+          },
+        },
+        {
+          element: '#ticket-grid',
+          popover: {
+            title: 'Cuadrícula de boletos',
+            description:
+              'Navega entre páginas usando los botones de abajo. Haz clic en cualquier boleto disponible (gris claro) para seleccionarlo.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#pagination-controls',
+          popover: {
+            title: 'Controles de paginación',
+            description: 'Usa estos botones para moverte entre las 10,000 boletas. Cada página muestra 1,000 números.',
+            side: 'top',
+            align: 'center',
+          },
+        },
+        {
+          element: '#available-counter',
+          popover: {
+            title: 'Boletos disponibles',
+            description: 'Este contador te muestra cuántos boletos aún puedes comprar. ¡No esperes demasiado!',
+            side: 'top',
+            align: 'center',
+          },
+        },
+      ],
+    })
+
+    tour.drive()
+  }
+
+  // Opcional: Auto-iniciar tour en primer uso
+  // useEffect(() => {
+  //   if (!isClient) return
+  //   const hasSeenTour = localStorage.getItem('hasSeenTicketTour')
+  //   if (!hasSeenTour) {
+  //     setTimeout(() => {
+  //       startTour()
+  //       localStorage.setItem('hasSeenTicketTour', 'true')
+  //     }, 1500)
+  //   }
+  // }, [isClient])
+
   return (
     <div className="mb-8 p-[1px] rounded-xl bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)]">
       <Card className="p-4 sm:p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-black shadow-2xl border-0 relative">
@@ -150,14 +261,27 @@ export function TicketGrid({
         <div className="text-center mb-8">
           <div className="p-[1px] rounded-full bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)] inline-block mb-4 shadow-lg">
             <div className="bg-stone-950 w-fit text-s text-white py-3 px-6 rounded-full flex items-center space-x-2">
-              <h2 className="text-lg sm:text-3xl font-black flex items-center justify-center space-x-1 sm:space-x-3">
+              <h2
+                id="ticket-grid-title"
+                className="text-lg sm:text-3xl font-black flex items-center justify-center space-x-1 sm:space-x-3"
+              >
                 <img src="/boletas.png" alt="Boletas" className="w-6 h-6" />
-                <span className="text-balance"><b>Lista de Boletos</b></span>
+                <span className="text-balance">
+                  <b>Lista de Boletos</b>
+                </span>
               </h2>
+              <button
+                onClick={startTour}
+                className="ml-4 bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm py-1 px-3 rounded-full flex items-center gap-1 transition-all duration-300 shadow-md"
+              >
+                <Sparkles className="w-4 h-4" />
+                ¿Cómo usar?
+              </button>
             </div>
           </div>
+
           {/* Barra de progreso */}
-          <div className="mb-6 max-w-md mx-auto">
+          <div id="progress-bar" className="mb-6 max-w-md mx-auto">
             <div className="flex justify-between text-sm sm:text-lg font-bold mb-2">
               <span className="text-gray-200">🔥 Progreso de ventas</span>
               <span suppressHydrationWarning className="text-orange-400">
@@ -176,8 +300,9 @@ export function TicketGrid({
               🎯 {soldTickets.length} vendidos de {totalTickets}
             </p>
           </div>
+
           {/* Leyenda */}
-          <div className="flex items-center justify-center space-x-3 sm:space-x-6 mb-6">
+          <div id="legend" className="flex items-center justify-center space-x-3 sm:space-x-6 mb-6">
             <div className="flex items-center space-x-1 sm:space-x-2 bg-gray-800 px-2 sm:px-4 py-1 sm:py-2 rounded-full shadow-md border border-gray-600">
               <div className="w-3 h-3 sm:w-5 sm:h-5 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full border-2 border-gray-300"></div>
               <span className="text-xs sm:text-sm font-medium text-gray-200">Disponible</span>
@@ -191,8 +316,9 @@ export function TicketGrid({
               <span className="text-xs sm:text-sm font-medium text-gray-200">Vendido</span>
             </div>
           </div>
+
           {/* Total */}
-          <div className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 text-black py-3 px-4 sm:py-4 sm:px-8 rounded-2xl inline-block mb-4 shadow-xl max-w-full">
+          <div id="total-display" className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 text-black py-3 px-4 sm:py-4 sm:px-8 rounded-2xl inline-block mb-4 shadow-xl max-w-full">
             {isClient && (
               <>
                 <p suppressHydrationWarning className="text-lg sm:text-2xl font-black">
@@ -205,9 +331,10 @@ export function TicketGrid({
               </>
             )}
           </div>
+
           {/* Lista de boletos seleccionados */}
           {selectedTickets.length > 0 && (
-            <div className="bg-gray-800 border border-gray-600 rounded-xl p-4 mb-6 max-w-md mx-auto shadow-inner">
+            <div id="selected-tickets-list" className="bg-gray-800 border border-gray-600 rounded-xl p-4 mb-6 max-w-md mx-auto shadow-inner">
               <h3 className="text-sm font-bold text-gray-200 mb-2 flex items-center gap-2">
                 <Ticket className="w-4 h-4 text-orange-400" />
                 Tus boletos seleccionados ({selectedTickets.length}):
@@ -226,6 +353,7 @@ export function TicketGrid({
               </div>
             </div>
           )}
+
           {/* Notificación inteligente */}
           {showNotification && (
             <Alert className="bg-blue-600 text-white border-none shadow-lg mb-6">
@@ -240,8 +368,9 @@ export function TicketGrid({
               </AlertDescription>
             </Alert>
           )}
+
           {/* LotteryButton */}
-          <div className="max-w-md mx-auto mb-8">
+          <div id="lucky-pick-section" className="max-w-md mx-auto mb-8">
             <Card className="bg-stone-950 backdrop-blur-xl border border-stone-800/50 shadow-2xl shadow-black/50 rounded-3xl overflow-hidden">
               <CardContent className="p-8 space-y-8">
                 <div className="space-y-6">
@@ -298,14 +427,14 @@ export function TicketGrid({
                       active:shadow-[0_4px_0_0_#ca8a04,0_8px_16px_rgba(234,179,8,0.4)]
                       hover:translate-y-[-4px]
                       active:translate-y-[6px]
-                      ${isAnimating ? "animate-pulse scale-105 shadow-[0_0_40px_rgba(234,179,8,0.8)]" : ""}
+                      ${isAnimating ? 'animate-pulse scale-105 shadow-[0_0_40px_rgba(234,179,8,0.8)]' : ''}
                       relative overflow-hidden
                     `}
                   >
                     <div className="flex items-center gap-4 relative z-10">
-                      <Sparkles className={`w-7 h-7 ${isAnimating ? "animate-spin" : ""}`} />
-                      {isAnimating ? "Seleccionando..." : "Escoger a la Suerte"}
-                      <Sparkles className={`w-7 h-7 ${isAnimating ? "animate-spin" : ""}`} />
+                      <Sparkles className={`w-7 h-7 ${isAnimating ? 'animate-spin' : ''}`} />
+                      {isAnimating ? 'Seleccionando...' : 'Escoger a la Suerte'}
+                      <Sparkles className={`w-7 h-7 ${isAnimating ? 'animate-spin' : ''}`} />
                     </div>
                     <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-transparent via-white/30 to-transparent transform -skew-x-12 translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 pointer-events-none" />
                   </Button>
@@ -314,7 +443,7 @@ export function TicketGrid({
                   <div className="inline-flex items-center gap-2 px-4 py-2 bg-stone-800/50 backdrop-blur-sm rounded-full border border-stone-700/30">
                     <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></div>
                     <p className="text-stone-200 font-medium text-sm tracking-wide">
-                      {ticketCount} ticket{ticketCount > 1 ? "s" : ""} seleccionado{ticketCount > 1 ? "s" : ""}
+                      {ticketCount} ticket{ticketCount > 1 ? 's' : ''} seleccionado{ticketCount > 1 ? 's' : ''}
                     </p>
                   </div>
                   <p className="text-xs text-stone-500 font-light tracking-wider uppercase">
@@ -325,6 +454,7 @@ export function TicketGrid({
             </Card>
           </div>
         </div>
+
         {/* Información de página */}
         <div className="text-center mb-6">
           <div className="bg-gray-800 border border-gray-600 px-3 sm:px-6 py-2 sm:py-3 rounded-full shadow-md inline-block max-w-full">
@@ -333,8 +463,9 @@ export function TicketGrid({
             </p>
           </div>
         </div>
+
         {/* Cuadrícula de boletos */}
-        <div className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500 scrollbar-track-gray-700 mb-8">
+        <div id="ticket-grid" className="max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-orange-500 scrollbar-track-gray-700 mb-8">
           <div className="grid grid-cols-5 sm:grid-cols-8 md:grid-cols-12 lg:grid-cols-15 xl:grid-cols-20 gap-1 sm:gap-2 p-2">
             {isClient && currentPageTickets.length > 0 ? (
               currentPageTickets.map((ticketNumber) => {
@@ -349,10 +480,10 @@ export function TicketGrid({
                       p-1 sm:p-2 text-center rounded-md font-bold font-mono aspect-square flex items-center justify-center transition-all duration-300 border shadow-md text-xs
                       ${
                         isSold
-                          ? "bg-gray-500 text-gray-300 border-gray-500 cursor-not-allowed opacity-50"
+                          ? 'bg-gray-500 text-gray-300 border-gray-500 cursor-not-allowed opacity-50'
                           : isSelected
-                          ? "bg-gradient-to-r from-orange-400 to-yellow-500 text-black border-orange-300 shadow-lg transform scale-105 z-10"
-                          : "bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 border-gray-500 hover:shadow-lg hover:scale-105 text-gray-200"
+                          ? 'bg-gradient-to-r from-orange-400 to-yellow-500 text-black border-orange-300 shadow-lg transform scale-105 z-10'
+                          : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 border-gray-500 hover:shadow-lg hover:scale-105 text-gray-200'
                       }
                     `}
                   >
@@ -367,8 +498,9 @@ export function TicketGrid({
             )}
           </div>
         </div>
+
         {/* Paginación */}
-        <div className="flex flex-wrap justify-center items-center gap-2 max-w-full overflow-x-auto py-2">
+        <div id="pagination-controls" className="flex flex-wrap justify-center items-center gap-2 max-w-full overflow-x-auto py-2">
           <Button
             variant="outline"
             size="sm"
@@ -463,7 +595,7 @@ export function TicketGrid({
         </div>
 
         {/* Boletos disponibles */}
-        <div className="text-center mt-6">
+        <div id="available-counter" className="text-center mt-6">
           <div className="bg-gray-800 border border-gray-600 px-3 sm:px-6 py-2 sm:py-3 rounded-full inline-block shadow-md max-w-full">
             <p className="text-sm sm:text-lg font-bold text-orange-400">
               🎯 {isClient ? availableTickets.length : 0} boletos disponibles de {totalTickets}
