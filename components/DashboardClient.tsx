@@ -35,6 +35,7 @@ interface Entry {
   paymentReference: string;
   accountHolder: string;
   filePath: string;
+  filePaths?: string[]; // 🆕 Soporte para múltiples archivos
 }
 
 interface DashboardClientProps {
@@ -52,9 +53,7 @@ const groupEntriesByIdNumber = (entries: Entry[]): Entry[] => {
       const existing = grouped.get(key)!;
       existing.tickets = [...existing.tickets, ...entry.tickets];
       existing.ticketCount += entry.ticketCount;
-      // Opcional: puedes actualizar otros campos si es necesario (ej: fecha más reciente, etc)
     } else {
-      // Clonamos para evitar mutar el original
       grouped.set(key, { ...entry });
     }
   });
@@ -117,10 +116,8 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
     if (confirm("¿Seguro que deseas eliminar esta entrada?")) {
       const res = await deleteEntry(id);
       if (res.success) {
-        // Buscamos el idNumber del registro eliminado
         const deletedEntry = rawEntries.find(e => e.id === id);
         if (deletedEntry) {
-          // Eliminamos todas las entradas con ese idNumber
           setRawEntries(prev => prev.filter(e => e.idNumber !== deletedEntry.idNumber));
         }
         if (selectedEntry?.id === id) {
@@ -133,9 +130,14 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
     }
   };
 
-  // 👁️ Ver entrada (modal)
+  // 👁️ Ver entrada (modal) — AHORA CON TODOS LOS ARCHIVOS
   const handleViewEntry = (entry: Entry) => {
-    setSelectedEntry(entry);
+    const allEntriesWithSameId = rawEntries.filter(e => e.idNumber === entry.idNumber);
+    const entryWithAllFiles = {
+      ...entry,
+      filePaths: allEntriesWithSameId.map(e => e.filePath),
+    };
+    setSelectedEntry(entryWithAllFiles);
     setIsModalOpen(true);
   };
 
@@ -229,7 +231,7 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
               <div className="space-y-2">
                 {topBuyers.map((entry, index) => (
                   <div
-                    key={entry.idNumber} // ⚠️ Cambiado a idNumber para evitar duplicados en claves
+                    key={entry.idNumber}
                     className="flex items-center justify-between p-2 bg-white rounded-lg border border-blue-100 hover:shadow-sm transition"
                   >
                     <div className="flex items-center gap-3">
@@ -259,7 +261,7 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
         <div className="space-y-3">
           {filteredEntries.map((entry) => (
             <Card
-              key={entry.idNumber} // ⚠️ Usamos idNumber como key para evitar duplicados
+              key={entry.idNumber}
               className={`
                 hover:shadow-md transition-shadow duration-200 bg-white border-gray-200
                 ${searchedTicket && entry.tickets.includes(searchedTicket)
@@ -312,12 +314,12 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
                       className="h-8 border-blue-300 text-blue-700 hover:bg-blue-50 text-xs sm:text-sm"
                     >
                       <Eye className="h-4 w-4 mr-1" />
-                      Ver
+                      Ver ({rawEntries.filter(e => e.idNumber === entry.idNumber).length})
                     </Button>
                     <Button
                       variant="destructive"
                       size="sm"
-                      onClick={() => handleDelete(entry.id)} // ⚠️ Sigue usando entry.id para eliminar UN registro, pero luego borra todos del mismo idNumber
+                      onClick={() => handleDelete(entry.id)}
                       className="h-8 w-8 p-0"
                     >
                       <Trash2 className="h-4 w-4" />
@@ -442,21 +444,40 @@ export default function DashboardClient({ entries: initialEntries, user }: Dashb
                   </div>
                 </div>
 
-                {/* File */}
+                {/* Files — 🆕 Sección actualizada */}
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-gray-900 border-b border-gray-200 pb-1">
-                    Comprobante
+                    Comprobantes ({(selectedEntry.filePaths || [selectedEntry.filePath]).length})
                   </h3>
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                    <FileText className="h-5 w-5 text-gray-500" />
-                    <a
-                      href={selectedEntry.filePath}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:underline break-all text-sm sm:text-base"
-                    >
-                      {selectedEntry.filePath}
-                    </a>
+                  <div className="space-y-3">
+                    {(selectedEntry.filePaths || [selectedEntry.filePath]).map((path, idx) => (
+                      <div
+                        key={idx}
+                        className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-sm transition"
+                      >
+                        <FileText className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                        <div className="flex flex-col gap-1">
+                          <a
+                            href={path}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline break-all text-sm sm:text-base font-mono"
+                          >
+                            {path}
+                          </a>
+                          {/* Vista previa si es imagen */}
+                          {/\.(jpg|jpeg|png|gif|webp)$/i.test(path) && (
+                            <Image
+                              src={path}
+                              alt={`Comprobante ${idx + 1}`}
+                              width={200}
+                              height={150}
+                              className="rounded border border-gray-300 mt-2 object-cover max-w-full h-auto"
+                            />
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
