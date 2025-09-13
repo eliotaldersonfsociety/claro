@@ -27,7 +27,7 @@ export default function Home() {
     accountHolder: '',
   })
 
-  // 👉 Función para calcular el total (igual que en TicketGrid)
+  // 👉 Función para calcular el total en USD
   const calculateTotal = (tickets: number[]) => {
     const ticketPrice = 2
     const groupsOfTen = Math.floor(tickets.length / 10)
@@ -35,7 +35,17 @@ export default function Home() {
     return groupsOfTen * 15 + remaining * ticketPrice
   }
 
+  // 👉 Función para calcular el total en Bs (NUEVA)
+  const calculateTotalBs = (tickets: number[]) => {
+    const pricePerTicket = 265
+    const pricePerTenPack = 2130
+    const groupsOfTen = Math.floor(tickets.length / 10)
+    const remaining = tickets.length % 10
+    return groupsOfTen * pricePerTenPack + remaining * pricePerTicket
+  }
+
   const total = calculateTotal(selectedTickets)
+  const totalBs = calculateTotalBs(selectedTickets) // ✅ Calculamos el total en bolívares
 
   // Esta función se pasa a PaymentProof y se ejecuta tras envío exitoso
   const handlePurchaseSuccess = () => {
@@ -79,6 +89,7 @@ export default function Home() {
           <PaymentMethods
             selectedTickets={selectedTickets}
             total={total}
+            totalBs={totalBs} // ✅ ¡Pasamos el total en bolívares!
           />
         </div>
 
