@@ -8,10 +8,12 @@ import 'driver.js/dist/driver.css'
 
 export function PaymentMethods({
   selectedTickets,
-  total,
+  total,      // Total en USD
+  totalBs,    // ✅ Total en Bolívares (calculado con lógica independiente)
 }: {
   selectedTickets: number[]
   total: number
+  totalBs: number
 }) {
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null)
   const [isClient, setIsClient] = useState(false)
@@ -33,9 +35,9 @@ export function PaymentMethods({
 
   const paymentData = {
     Zelle: { email: "rifalosfantasticos@gmail.com", name: "Pleyker Pena" },
-    PayPal: { email: "bucarmarketing@gmail.com", link: "https://paypal.me/bucarmarketing", name: "Bucarmarketing" },
+    PayPal: { email: "bucarmarketing@gmail.com", link: "https://cash.app/$MaikolArdila", name: "Bucarmarketing" },
     Binance: { id: "613937704", email: "rifalosfantasticos@gmail.com", wallet: "0x8667128a08288e39a916712f899d43761bb260b7" },
-    "Pago Móvil": { bank: "Banesco", account: "01340428334281055039", name: "Dilia Mendez Araujo ", ci: "12032808", phone: "04127451647", cost: "420 Bs" },
+    "Pago Móvil": { bank: "Banesco", account: "01340428334281055039", name: "Dilia Mendez Araujo ", ci: "12032808", phone: "04127451647", cost: "265 Bs" }, // ✅ Actualizado a 265 Bs
     Nequi: { phone: "3219412929" },
     "Cash App": { link: "https://cash.app/$MaikolArdila" },
     "Western Union": { name: "Elbis Pleyker Peña Mendez", country: "EEUU - Miami", ci: "22214146" },
@@ -118,16 +120,6 @@ export function PaymentMethods({
     tour.drive()
   }
 
-  // Opcional: auto-iniciar tour en primer uso
-  // useEffect(() => {
-  //   if (!isClient) return
-  //   const seen = localStorage.getItem('seenPaymentTour')
-  //   if (!seen) {
-  //     setTimeout(startTour, 1000)
-  //     localStorage.setItem('seenPaymentTour', 'true')
-  //   }
-  // }, [isClient])
-
   return (
     <div className="mb-8 p-[1px] rounded-xl bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)]">
       <Card className="border-0 p-4 md:p-8 bg-gradient-to-br from-gray-900 via-gray-800 to-black shadow-2xl">
@@ -160,13 +152,13 @@ export function PaymentMethods({
           </div>
         </div>
 
-        {/* Resumen de compra — NUEVO BLOQUE */}
+        {/* Resumen de compra — ACTUALIZADO */}
         {selectedTickets.length > 0 && (
           <div id="purchase-summary" className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 text-black py-4 px-6 rounded-2xl mb-6 shadow-xl">
             <h4 className="text-lg font-black text-center mb-2">🎟️ TU COMPRA</h4>
-            <p className="text-center font-bold text-lg">Total: ${total.toFixed(2)} USD</p>
+            <p className="text-center font-bold text-lg">💵 Total USD: ${total.toFixed(2)}</p>
             <p className="text-center font-bold text-lg text-yellow-900">
-              🇻🇪 {new Intl.NumberFormat('es-VE').format(total * 210)} Bs
+              🇻🇪 Total Bs: {new Intl.NumberFormat('es-VE').format(totalBs)} Bs
             </p>
             <div className="mt-2 text-center">
               <p className="text-sm font-medium">Boletos seleccionados ({selectedTickets.length}):</p>
@@ -183,6 +175,9 @@ export function PaymentMethods({
                   ))}
               </div>
             </div>
+            <p className="text-xs text-white/80 mt-2 text-center">
+              💡 USD: $2 c/u • $15 cada 10 | Bs: 265 c/u • 2.130 cada 10
+            </p>
           </div>
         )}
 
@@ -224,7 +219,7 @@ export function PaymentMethods({
                         {paymentData.Zelle[field as keyof typeof paymentData.Zelle]}
                       </p>
                       <button
-                        id={i === 0 ? "copy-buttons" : undefined} // Solo el primer botón lleva el ID para el tour
+                        id={i === 0 ? "copy-buttons" : undefined}
                         onClick={() =>
                           copyToClipboard(paymentData.Zelle[field as keyof typeof paymentData.Zelle] as string)
                         }
@@ -311,7 +306,7 @@ export function PaymentMethods({
                           ? "🆔 Cédula"
                           : field === "phone"
                           ? "📱 Teléfono"
-                          : "💵 Monto po Ticket"}
+                          : "💵 Monto por Ticket"}
                       </p>
                       <p className="text-sm sm:text-base font-bold text-white break-words text-center">
                         {paymentData["Pago Móvil"][field as keyof typeof paymentData["Pago Móvil"]]}
