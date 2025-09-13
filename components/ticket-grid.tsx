@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { X, Minus, Plus, Sparkles, Ticket } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Label } from '@/components/ui/Label'
 import { getSoldTickets } from '@/server/helpers/getSoldTickets'
 import { driver } from "driver.js";
 import 'driver.js/dist/driver.css'
@@ -58,9 +58,9 @@ export function TicketGrid({
   useEffect(() => {
     const count = selectedTickets.length
     if (count === 5) {
-      setShowNotification('🎯 ¡Genial! Elige 5 boletos más y paga solo $15 en lugar de $20 (ahorras $5).')
+      setShowNotification('🎯 ¡Genial! Elige 5 más: paga $15 USD (ahorras $5) o 2.130 Bs (ahorras 520 Bs).')
     } else if (count === 9) {
-      setShowNotification('🔥 ¡Casi lo tienes! Con solo 1 boleto más, tu grupo de 10 costará $15 en vez de $20.')
+      setShowNotification('🔥 ¡Casi lo tienes! 1 más y pagas $15 USD o 2.130 Bs por 10 boletos.')
     } else {
       setShowNotification(null)
     }
@@ -88,11 +88,21 @@ export function TicketGrid({
 
   const formatTicketNumber = (num: number) => num.toString().padStart(4, '0')
 
-  const calculateTotal = (tickets: number[]) => {
+  // 💵 Cálculo en USD (original)
+  const calculateTotalUSD = (tickets: number[]) => {
     const ticketPrice = 2
     const groupsOfTen = Math.floor(tickets.length / 10)
     const remaining = tickets.length % 10
     return groupsOfTen * 15 + remaining * ticketPrice
+  }
+
+  // 🇻🇪 Cálculo en Bolívares (nuevo)
+  const calculateTotalBs = (tickets: number[]) => {
+    const pricePerTicket = 265
+    const pricePerTenPack = 2130
+    const groupsOfTen = Math.floor(tickets.length / 10)
+    const remaining = tickets.length % 10
+    return groupsOfTen * pricePerTenPack + remaining * pricePerTicket
   }
 
   // --- Lucky Pick ---
@@ -177,7 +187,7 @@ export function TicketGrid({
           element: '#total-display',
           popover: {
             title: 'Total a pagar',
-            description: 'El costo se calcula automáticamente. ¡Por cada 10 boletos pagas solo $15 en lugar de $20!',
+            description: 'El costo se calcula automáticamente. ¡Por cada 10 boletos pagas solo $15 USD o 2.130 Bs!',
             side: 'bottom',
             align: 'center',
           },
@@ -235,18 +245,6 @@ export function TicketGrid({
 
     tour.drive()
   }
-
-  // Opcional: Auto-iniciar tour en primer uso
-  // useEffect(() => {
-  //   if (!isClient) return
-  //   const hasSeenTour = localStorage.getItem('hasSeenTicketTour')
-  //   if (!hasSeenTour) {
-  //     setTimeout(() => {
-  //       startTour()
-  //       localStorage.setItem('hasSeenTicketTour', 'true')
-  //     }, 1500)
-  //   }
-  // }, [isClient])
 
   return (
     <div className="mb-8 p-[1px] rounded-xl bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)]">
@@ -317,17 +315,29 @@ export function TicketGrid({
             </div>
           </div>
 
-          {/* Total */}
+          {/* Total — ✅ MOSTRAMOS AMBOS PRECIOS */}
           <div id="total-display" className="bg-gradient-to-r from-orange-500 via-yellow-500 to-orange-600 text-black py-3 px-4 sm:py-4 sm:px-8 rounded-2xl inline-block mb-4 shadow-xl max-w-full">
             {isClient && (
               <>
+                {/* Precio en USD */}
                 <p suppressHydrationWarning className="text-lg sm:text-2xl font-black">
-                  💰 Total: ${calculateTotal(selectedTickets).toFixed(2)} USD
+                  💵 Total USD: ${calculateTotalUSD(selectedTickets).toFixed(2)}
                 </p>
-                <p className="text-sm sm:text-lg font-bold text-yellow-900">
-                  🇻🇪 {new Intl.NumberFormat('es-VE').format(calculateTotal(selectedTickets) * 210)} Bs
+
+                {/* Precio en Bs */}
+                <p className="text-lg sm:text-2xl font-black text-yellow-900 mt-1">
+                  🇻🇪 Total Bs: {new Intl.NumberFormat('es-VE').format(calculateTotalBs(selectedTickets))} Bs
                 </p>
-                <p className="text-sm sm:text-lg font-bold mt-1">{selectedTickets.length} BOLETOS ESCOGIDOS</p>
+
+                {/* Cantidad de boletos */}
+                <p className="text-sm sm:text-lg font-bold mt-2">
+                  🎟️ {selectedTickets.length} BOLETO{selectedTickets.length !== 1 ? 'S' : ''} SELECCIONADO{selectedTickets.length !== 1 ? 'S' : ''}
+                </p>
+
+                {/* Leyenda de precios */}
+                <p className="text-xs text-white/80 mt-2">
+                  💡 USD: $2 c/u • $15 cada 10 | Bs: 265 c/u • 2.130 cada 10
+                </p>
               </>
             )}
           </div>
