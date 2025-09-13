@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { X, Minus, Plus, Sparkles, Ticket } from 'lucide-react'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/Label'
+import { Label } from '@/components/ui/label'
 import { getSoldTickets } from '@/server/helpers/getSoldTickets'
 import { driver } from "driver.js";
 import 'driver.js/dist/driver.css'
