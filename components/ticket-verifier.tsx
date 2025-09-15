@@ -1,3 +1,4 @@
+// app/components/TicketVerifier.tsx
 'use client'
 
 import { useState } from 'react'
@@ -144,7 +145,9 @@ export function TicketVerifier() {
 
         {tickets && tickets.length > 0 && (
           <div className="text-center mt-6">
-            <h3 className="text-white font-bold mb-2">Boletos encontrados:</h3>
+            <h3 className="text-white font-bold mb-2">
+              {tickets.length} boleto{tickets.length !== 1 ? 's' : ''} encontrados:
+            </h3>
             <div className="flex flex-wrap justify-center gap-2">
               {tickets.map((t) => (
                 <span
