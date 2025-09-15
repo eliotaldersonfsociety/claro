@@ -1,4 +1,6 @@
+// app/actions/verifyTickets.ts
 'use server'
+
 import { db } from '@/lib/db'
 
 type VerifyTicketsParams = {
@@ -28,7 +30,7 @@ export async function verifyTickets({ identifier }: VerifyTicketsParams) {
         FROM raffle_ticket t
         JOIN raffle_entry e ON t.entry_id = e.id
         WHERE e.phone = ? OR e.id_number = ?
-        LIMIT 1  -- Solo necesitamos una fila, los tickets se extraen de ticket_number
+        ORDER BY e.created_at ASC
       `,
       args: [identifier, identifier],
     })
@@ -37,37 +39,65 @@ export async function verifyTickets({ identifier }: VerifyTicketsParams) {
       return { success: false, message: 'No se encontraron boletos para este identificador' }
     }
 
-    const row = result.rows[0]
+    let allTickets: number[] = []
+    let customerData: {
+      fullName: string
+      idNumber: string
+      phone: string
+      countryCode: string
+      countryName: string
+      paymentReference: string
+      accountHolder: string
+      fileUrl?: string
+      fileName?: string
+      mimeType?: string
+    } | null = null
 
-    // Parsear JSON de los tickets
-    let tickets: number[] = []
-    try {
-      tickets = JSON.parse(
-        typeof row.ticket_number === 'string'
-          ? row.ticket_number
-          : JSON.stringify(row.ticket_number ?? [])
-      )
-    } catch (err) {
-      console.warn('Error parsing tickets JSON:', row.ticket_number)
-      tickets = []
+    for (const row of result.rows) {
+      // Parsear tickets de cada compra
+      try {
+        const tickets = JSON.parse(
+          typeof row.ticket_number === 'string'
+            ? row.ticket_number
+            : JSON.stringify(row.ticket_number ?? [])
+        )
+        if (Array.isArray(tickets)) {
+          allTickets = [...allTickets, ...tickets]
+        }
+      } catch (err) {
+        console.warn('Error parsing tickets JSON:', row.ticket_number)
+      }
+
+      // Tomar los datos del cliente desde la primera fila (asumimos que son consistentes)
+      if (!customerData) {
+        customerData = {
+          fullName: String(row.full_name),
+          idNumber: String(row.id_number),
+          phone: String(row.phone),
+          countryCode: String(row.country_code),
+          countryName: String(row.country_name),
+          paymentReference: String(row.payment_reference),
+          accountHolder: String(row.account_holder),
+          fileUrl: row.file_path ? String(row.file_path) : undefined,
+          fileName: row.file_name ? String(row.file_name) : undefined,
+          mimeType: row.mime_type ? String(row.mime_type) : undefined,
+        }
+      }
     }
 
-    // Devolver TODOS los datos del cliente + boletos
+    // Si no hay tickets válidos, retornar array vacío pero éxito
+    if (allTickets.length === 0) {
+      return {
+        success: true,
+        tickets: [],
+        customer: customerData || null,
+      }
+    }
+
     return {
       success: true,
-      tickets,
-      customer: {
-        fullName: row.full_name,
-        idNumber: row.id_number,
-        phone: row.phone,
-        countryCode: row.country_code,
-        countryName: row.country_name,
-        paymentReference: row.payment_reference,
-        accountHolder: row.account_holder,
-        fileUrl: row.file_path,
-        fileName: row.file_name,
-        mimeType: row.mime_type,
-      },
+      tickets: allTickets,
+      customer: customerData,
     }
   } catch (error: any) {
     console.error('Error en verifyTickets:', error)
