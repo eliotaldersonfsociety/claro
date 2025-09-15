@@ -1,4 +1,5 @@
-import { Badge } from "@/components/ui/badge"
+'use client'
+
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -53,6 +54,7 @@ export function RaffleInfo() {
 
       {/* Grid de tarjetas */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+
         {/* Tarjeta 1: Imagen de la moto */}
         <div className="relative group">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-500 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity"></div>
@@ -72,19 +74,47 @@ export function RaffleInfo() {
           </div>
         </div>
 
-        {/* Tarjeta 2: Video de YouTube */}
-        <div className="relative w-full aspect-[9/16] md:aspect-video">
-          <iframe
-            className="absolute top-0 left-0 w-full h-full rounded-xl shadow-lg border-4 border-white"
-            src="https://www.youtube.com/embed/GBQE3_G_LW4"
-            title="Video promocional de la rifa"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
+        {/* Tarjeta 2: Video de YouTube (optimizado) */}
+        <div className="relative w-full aspect-[9/16] md:aspect-video cursor-pointer group">
+          {/* Miniatura de YouTube (nocookie) */}
+          <img
+            src="https://img.youtube.com/vi/GBQE3_G_LW4/hqdefault.jpg"
+            alt="Video promocional de la rifa - KLR-650"
+            loading="lazy"
+            className="w-full h-full object-cover rounded-xl shadow-lg border-4 border-white transition-transform duration-300 group-hover:scale-105"
           />
+
+          {/* Botón de Play superpuesto */}
+          <button
+            aria-label="Reproducir video promocional de la rifa"
+            className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+          >
+            <div className="bg-red-600 hover:bg-red-700 text-white p-4 rounded-full shadow-xl transform scale-90 group-hover:scale-100 transition-transform duration-300">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="48"
+                height="48"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                className="text-white"
+              >
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            </div>
+          </button>
+
+          {/* Contenedor oculto para cargar el iframe al hacer clic */}
+          <div className="absolute inset-0 hidden" id="youtube-player-container">
+            <iframe
+              className="w-full h-full rounded-xl shadow-lg border-4 border-white"
+              src="https://www.youtube-nocookie.com/embed/GBQE3_G_LW4?autoplay=1"
+              title="Video promocional de la rifa"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            ></iframe>
+          </div>
         </div>
-
-
 
         {/* Tarjeta 3: Detalles del premio */}
         <div className="p-[1px] rounded-xl bg-[linear-gradient(to_right,_#ec4899,_#facc15,_#60a5fa,_#22c55e)]">
@@ -165,7 +195,7 @@ export function RaffleInfo() {
                   className="w-8 h-8"
                 />
                 <span className="font-bold text-yellow-500">
-                  $500 USD a la persona que compre mas Tikets, se entregara el ganador el dia de la rifa.
+                  $500 USD a la persona que compre más tickets, se entregará el ganador el día de la rifa.
                 </span>
               </div>
             </div>
@@ -174,7 +204,7 @@ export function RaffleInfo() {
                 ¿No quieres la moto?
               </p>
               <p className="text-stone-900 font-light text-center">
-                ¡Te entregamos <b className="font-bold text-white">3,000 USD</b> en efectivo! Recuerda si estás en Estados Unidos FLORiDA te la llevamos asta la puerta de tu casa si estás en otro estados te compramos tu boleto de avión para que vengas directamente por tu premio, Y si estás en cualquier otro lados como Colombia ecuador chile cualquier lugar del mundo 🌍 te hacemos llegar tu dinero 💴 con transferencia inmediata.
+                ¡Te entregamos <b className="font-bold text-white">3,000 USD</b> en efectivo! Recuerda si estás en Estados Unidos FLORiDA te la llevamos hasta la puerta de tu casa, si estás en otro estado te compramos tu boleto de avión para que vengas directamente por tu premio, y si estás en cualquier otro lugar como Colombia, Ecuador, Chile o cualquier parte del mundo 🌍 te hacemos llegar tu dinero 💴 con transferencia inmediata.
               </p>
             </div>
           </Card>
@@ -247,6 +277,7 @@ export function RaffleInfo() {
             </div>
           </Card>
         </div>
+
       </div>
 
       {/* Mensaje final */}
@@ -256,6 +287,25 @@ export function RaffleInfo() {
       <p className="text-yellow-400 text-center text-sm font-extralight mt-1">
         Recuerda que participar ya te acerca al premio.
       </p>
+
+      {/* Script para cargar el iframe al hacer clic — versión segura y confiable */}
+      <script dangerouslySetInnerHTML={{
+        __html: `
+          document.addEventListener('DOMContentLoaded', function() {
+            const videoContainers = document.querySelectorAll('.relative.w-full.aspect-[9/16].md\\\\:aspect-video');
+            videoContainers.forEach(container => {
+              container.addEventListener('click', function() {
+                const playerContainer = this.querySelector('#youtube-player-container');
+                if (playerContainer) {
+                  playerContainer.classList.remove('hidden');
+                  this.querySelector('img').classList.add('hidden');
+                  this.querySelector('button').classList.add('hidden');
+                }
+              });
+            });
+          });
+        `
+      }} />
     </div>
   );
 }
