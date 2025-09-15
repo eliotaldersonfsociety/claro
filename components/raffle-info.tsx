@@ -75,7 +75,7 @@ export function RaffleInfo() {
         </div>
 
         {/* Tarjeta 2: Video de YouTube (optimizado) */}
-        <div className="relative w-full aspect-[9/16] md:aspect-video cursor-pointer group">
+        <div id="video-container" className="relative w-full aspect-[9/16] md:aspect-video cursor-pointer group">
           {/* Miniatura de YouTube (nocookie) */}
           <img
             src="https://img.youtube.com/vi/GBQE3_G_LW4/hqdefault.jpg"
@@ -107,7 +107,7 @@ export function RaffleInfo() {
           <div className="absolute inset-0 hidden" id="youtube-player-container">
             <iframe
               className="w-full h-full rounded-xl shadow-lg border-4 border-white"
-              src="https://www.youtube-nocookie.com/embed/GBQE3_G_LW4?autoplay=1"
+              src="https://www.youtube-nocookie.com/embed/GBQE3_G_LW4?autoplay=1&modestbranding=1"
               title="Video promocional de la rifa"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -292,16 +292,19 @@ export function RaffleInfo() {
       <script dangerouslySetInnerHTML={{
         __html: `
           document.addEventListener('DOMContentLoaded', function() {
-            const videoContainers = document.querySelectorAll('.relative.w-full.aspect-[9/16].md\\\\:aspect-video');
-            videoContainers.forEach(container => {
-              container.addEventListener('click', function() {
-                const playerContainer = this.querySelector('#youtube-player-container');
-                if (playerContainer) {
-                  playerContainer.classList.remove('hidden');
-                  this.querySelector('img').classList.add('hidden');
-                  this.querySelector('button').classList.add('hidden');
-                }
-              });
+            const container = document.getElementById('video-container');
+            if (!container) return;
+
+            container.addEventListener('click', function() {
+              const playerContainer = this.querySelector('#youtube-player-container');
+              const thumbnail = this.querySelector('img');
+              const playButton = this.querySelector('button');
+
+              if (playerContainer && thumbnail && playButton) {
+                playerContainer.classList.remove('hidden');
+                thumbnail.classList.add('hidden');
+                playButton.classList.add('hidden');
+              }
             });
           });
         `
