@@ -106,7 +106,7 @@ export function TicketVerifier() {
         {purchases && purchases.length > 0 && (
           <div className="mt-8 space-y-6">
             <h3 className="text-white font-bold text-xl border-b border-gray-600 pb-2">
-              {purchases.length} compra{purchases.length !== 1 ? 's' : ''} realizada{s}
+              {purchases.length} compra{purchases.length !== 1 ? 's' : ''} realizada
             </h3>
 
             {purchases.map((purchase, index) => (
