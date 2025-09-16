@@ -121,7 +121,7 @@ export function RaffleInfo() {
           <Card className="bg-card text-white p-6 shadow-xl rounded-xl border-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
             <h3 className="font-black text-2xl mb-3 flex items-center">
               <img
-                src="/klr.jpg"
+                src="/calvo.gif"
                 alt="Carro en rifa"
                 className="w-40 h-28 object-cover rounded-lg border-4 border-white shadow-lg transform rotate-3"
               />
